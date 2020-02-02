@@ -1,0 +1,42 @@
+{{/*
+Horizontal Pod Autoscaler template.
+This template takes an array of values:
+- the top context
+- the autoscaler values
+- optional template name of the overrides
+*/}}
+{{- define "common.horizontalPodAutoscaler" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args -}}
+{{- if typeIs "string" (last $args) -}}
+{{- template "common.util.merge" (append . "common.horizontalPodAutoscaler.tpl") -}}
+{{- else -}}
+{{- template "common.horizontalPodAutoscaler.tpl" . -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "common.horizontalPodAutoscaler.tpl" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args  -}}
+{{- $autoscaler  := dict -}}
+{{- range $values := compact $args -}}
+{{- $autoscaler   = $autoscaler | merge $values -}}
+{{- end -}}
+{{- if $autoscaler.enabled -}}
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  {{- include "common.metadata" . | nindent 2 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "common.fullname" $top }}
+  minReplicas: {{ $autoscaler.minReplicas }}
+  maxReplicas: {{ $autoscaler.maxReplicas }}
+  metrics:
+    {{- toYaml $autoscaler.metrics | nindent 4 }}
+{{- end }}
+{{- end -}}

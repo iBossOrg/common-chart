@@ -1,0 +1,55 @@
+{{/*
+Container template.
+This template takes an array of values:
+- the top context
+- the container values
+- optional template name of the overrides
+*/}}
+{{- define "common.container" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args -}}
+{{- if typeIs "string" (last $args) -}}
+{{- template "common.util.merge" (append . "common.container.tpl") -}}
+{{- else -}}
+{{- template "common.container.tpl" . -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "common.container.tpl" -}}
+{{- $args       := compact  . -}}
+{{- $top        := first    $args -}}
+{{- $args       := rest     $args  -}}
+{{- $container  := dict -}}
+{{- range $values := compact $args -}}
+{{- $container   = $container | merge $values -}}
+{{- end -}}
+{{- $image            := $container.image | default (dict) -}}
+{{- $imageRepository  := $image.repository | default $top.Chart.Name -}}
+{{- $imageTag         := $image.tag | default $top.Chart.AppVersion -}}
+name: {{ list $top.Chart.Name $container.name | compact | join "-" | quote }}
+image: {{ list $imageRepository $imageTag | compact | join ":" | quote }}
+{{- with $image.pullPolicy }}
+imagePullPolicy: {{ . | quote }}
+{{- end }}
+{{- with $container.securityContext }}
+securityContext:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with $container.resources }}
+resources:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with $container.startupProbe }}
+startupProbe:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with $container.livenessProbe }}
+livenessProbe:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- with $container.readinessProbe }}
+readinessProbe:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end -}}

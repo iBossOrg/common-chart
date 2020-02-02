@@ -1,0 +1,43 @@
+{{/*
+Pod Disruption Budget template.
+This template takes an array of values:
+- the top context
+- the budget values
+- optional template name of the overrides
+*/}}
+{{- define "common.podDisruptionBudget" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args -}}
+{{- if typeIs "string" (last $args) -}}
+{{- template "common.util.merge" (append . "common.podDisruptionBudget.tpl") -}}
+{{- else -}}
+{{- template "common.podDisruptionBudget.tpl" . -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "common.podDisruptionBudget.tpl" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args  -}}
+{{- $pdb      := dict -}}
+{{- range $values := compact $args -}}
+{{- $pdb       = $pdb | merge $values -}}
+{{- end -}}
+{{- if $pdb.create -}}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  {{- include "common.metadata" . | nindent 2 }}
+spec:
+  {{- with $pdb.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with $pdb.maxUnavailable }}
+  maxUnavailable: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" . | nindent 6 }}
+{{- end }}
+{{- end -}}

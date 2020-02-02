@@ -1,0 +1,70 @@
+{{/*
+Service template.
+This template takes an array of values:
+- the top context
+- the service values
+- optional template name of the overrides
+
+# Example values.yaml
+service:
+  type: ClusterIP
+  name: service
+  ports:
+  - port: 1234
+    targetPort: 1234
+    protocol: tcp
+    name: http
+*/}}
+{{- define "common.service" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args -}}
+{{- if typeIs "string" (last $args) -}}
+{{- template "common.util.merge" (append . "common.service.tpl") -}}
+{{- else -}}
+{{- template "common.service.tpl" . -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "common.service.tpl" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args  -}}
+{{- $service  := dict -}}
+{{- range $values := compact $args -}}
+{{- $service   = $service | merge $values -}}
+{{- end -}}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "common.metadata" . | nindent 2 }}
+spec:
+  type: {{ $service.type | quote }}
+  {{- with $service.ClusterIP }}
+  ClusterIP: {{ . | quote }}
+  {{- end }}
+  {{- if eq $service.type "LoadBalancer" }}
+  {{- with $service.loadBalancerIP }}
+  loadBalancerIP: {{ . | quote }}
+  {{- end }}
+  {{- else if eq $service.type "NodePort" }}
+  {{- with $service.nodePort }}
+  nodePort: {{ . }}
+  {{- end }}
+  {{- else if eq $service.type "ExternalName" }}
+  {{- with $service.externalName }}
+  externalName: {{ . }}
+  {{- end }}
+  {{- end }}
+  ports:
+    {{- range $port := $service.ports }}
+    - port: {{ $port.port }}
+      targetPort: {{ $port.targetPort | default $port.port }}
+      protocol: {{ $port.protocol | default "tcp" | quote }}
+      name: {{ $port.name | quote }}
+    {{- end }}
+  {{- if not (eq $service.type "ExternalName") }}
+  selector:
+    {{- include "common.selectorLabels" (list $top $service) | nindent 4 }}
+  {{- end }}
+{{- end -}}

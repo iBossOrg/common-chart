@@ -1,0 +1,42 @@
+{{/*
+Config Map template.
+This template takes an array of values:
+- the top context
+- the configmap values
+- optional template name of the overrides
+
+# Example values.yaml
+configmap:
+  create: false
+  name: myconfigmap
+  labels: {}
+  annotations: {}
+  automountServiceAccountToken: yes
+  imagePullSecrets: []
+  secrets: []
+*/}}
+{{- define "common.configmap" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args -}}
+{{- if typeIs "string" (last $args) -}}
+{{- template "common.util.merge" (append . "common.configmap.tpl") -}}
+{{- else -}}
+{{- template "common.configmap.tpl" . -}}
+{{- end -}}
+{{- end -}}
+
+{{define "common.configmap.tpl" -}}
+{{- $args     := compact  . -}}
+{{- $top      := first    $args -}}
+{{- $args     := rest     $args  -}}
+{{- $configMap  := dict -}}
+{{- range $values := compact $args -}}
+{{- $configMap   = $configMap | merge $values -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- include "common.metadata" . | nindent 2 }}
+data: {}
+{{- end -}}
