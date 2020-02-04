@@ -16,6 +16,7 @@ resource:
   labels: {}
   selectors: {}
   annotations: {}
+  checksums: []
 */}}
 {{- define "common.metadata" -}}
 {{- $args     := compact  . -}}
@@ -104,6 +105,11 @@ This template takes an array of values:
 {{- range $values := prepend $args $global -}}
 {{- with $values.annotations -}}
 {{- $annotations = $annotations | merge . -}}
+{{- range $file := $values.checksums -}}
+{{- $path := printf "%s/%s" $top.Template.BasePath $file -}}
+{{- $checksum := include $path $top | sha256sum -}}
+{{- $annotations = set $annotations (printf "checksum/%s" $file) $checksum -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- toYaml $annotations }}
