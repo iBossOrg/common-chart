@@ -36,9 +36,9 @@ resource:
 {{- $fullName := include "common.fullname" $top -}}
 name: {{ list $fullName $resource.name | compact | join "-" | quote }}
 labels:
-  {{- include "common.labels" . | nindent 2 }}
+  {{- include "common.metadata.labels" . | nindent 2 }}
 annotations:
-  {{- include "common.annotations" . | nindent 2 }}
+  {{- include "common.metadata.annotations" . | nindent 2 }}
 {{- end -}}
 
 {{/*
@@ -47,7 +47,7 @@ This template takes an array of values:
 - the top context
 - optional one or more resources
 */}}
-{{- define "common.labels" -}}
+{{- define "common.metadata.labels" -}}
 {{- $args     := compact  . -}}
 {{- $top      := first    $args -}}
 {{- $args     := rest     $args -}}
@@ -59,7 +59,7 @@ This template takes an array of values:
 {{- end -}}
 {{- end -}}
 {{- toYaml $labels }}
-{{- include "common.selectors" . | nindent 0 }}
+{{- include "common.metadata.selectors" . | nindent 0 }}
 {{- with $top.Chart.AppVersion }}
 app.kubernetes.io/version: {{ . | quote }}
 {{- end }}
@@ -73,7 +73,7 @@ This template takes an array of values:
 - the top context
 - optional one or more resources
 */}}
-{{- define "common.selectors" -}}
+{{- define "common.metadata.selectors" -}}
 {{- $args     := compact  . -}}
 {{- $top      := first    $args -}}
 {{- $args     := rest     $args -}}
@@ -95,7 +95,7 @@ This template takes an array of values:
 - the top context
 - optional one or more resources
 */}}
-{{- define "common.annotations" -}}
+{{- define "common.metadata.annotations" -}}
 {{- $args     := compact  . -}}
 {{- $top      := first    $args -}}
 {{- $args     := rest     $args -}}

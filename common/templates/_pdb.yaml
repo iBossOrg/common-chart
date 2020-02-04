@@ -38,6 +38,6 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "common.selectors" . | nindent 6 }}
+      {{- include "common.metadata.selectors" . | nindent 6 }}
 {{- end }}
 {{- end -}}

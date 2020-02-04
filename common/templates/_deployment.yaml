@@ -36,11 +36,11 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "common.selectors" . | nindent 6 }}
+      {{- include "common.metadata.selectors" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.selectors" . | nindent 8 }}
+        {{- include "common.metadata.selectors" . | nindent 8 }}
     spec:
       {{- with $deployment.imagePullSecrets }}
       imagePullSecrets:
