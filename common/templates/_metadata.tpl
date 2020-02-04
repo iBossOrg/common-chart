@@ -8,13 +8,13 @@ This template takes an array of values:
 # Example values.yaml
 global:
   labels: {}
-  selectorLabels: {}
+  selectors: {}
   annotations: {}
 
 resource:
   name: myresource
   labels: {}
-  selectorLabels: {}
+  selectors: {}
   annotations: {}
 */}}
 {{- define "common.metadata" -}}
@@ -59,7 +59,7 @@ This template takes an array of values:
 {{- end -}}
 {{- end -}}
 {{- toYaml $labels }}
-{{- include "common.selectorLabels" . | nindent 0 }}
+{{- include "common.selectors" . | nindent 0 }}
 {{- with $top.Chart.AppVersion }}
 app.kubernetes.io/version: {{ . | quote }}
 {{- end }}
@@ -73,14 +73,14 @@ This template takes an array of values:
 - the top context
 - optional one or more resources
 */}}
-{{- define "common.selectorLabels" -}}
+{{- define "common.selectors" -}}
 {{- $args     := compact  . -}}
 {{- $top      := first    $args -}}
 {{- $args     := rest     $args -}}
 {{- $global   := $top.Values.global | default (dict) -}}
 {{- $labels   := dict -}}
 {{- range $values := prepend $args $global -}}
-{{- with $values.selectorLabels -}}
+{{- with $values.selectors -}}
 {{- $labels = $labels | merge . -}}
 {{- end -}}
 {{- end -}}

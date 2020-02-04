@@ -65,6 +65,6 @@ spec:
     {{- end }}
   {{- if not (eq $service.type "ExternalName") }}
   selector:
-    {{- include "common.selectorLabels" (list $top $service) | nindent 4 }}
+    {{- include "common.selectors" (list $top $service) | nindent 4 }}
   {{- end }}
 {{- end -}}
